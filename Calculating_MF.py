@@ -31,11 +31,14 @@ ls = get_large_scales(dust_IQU, lmax, spectra_components, ell_fit_high, output_n
 log_pol_tens_varres = hp.read_map('/global/cscratch1/sd/jianyao/Dust/dust_gnilc_logpoltens_varres_nomono.fits', field = None) ### original maps in iqu
 log_ls = get_large_scales(log_pol_tens_varres, lmax, spectra_components, ell_fit_high, output_nside)
 
-my_modulate_amp = hp.read_map(datadir + f"My_modulate_amp_nside{nside}.fits")
-my_modulate_amp_pol = hp.read_map(datadir + f"My_modulate_amp_pol_nside{nside}.fits")
+# my_modulate_amp = hp.read_map(datadir + f"My_modulate_amp_nside{nside}.fits")
+# my_modulate_amp_pol = hp.read_map(datadir + f"My_modulate_amp_pol_nside{nside}.fits")
 
 modulate_amp = hp.read_map(datadir + f"modulate_amp_nside{nside}.fits")
 modulate_amp_pol = hp.read_map(datadir + f"modulate_amp_pol_nside{nside}.fits")
+
+ismooth = hp.smoothing(dust_IQU[0], fwhm=np.radians(5), lmax=lmax)
+new_mod = minmax(ismooth, 0, 6)
 
 header = set_header(0, 0, size_patch=3.75/60, Npix=320)
 # header1 = set_header(0, 15, size_patch=3.75/60, Npix=320)
@@ -60,8 +63,8 @@ for i in range(50):
     ss_pt = get_small_scales(map_out_from_iqu, lmax, spectra_components, ell_fit_high, output_nside)
 
     ss = hp.synfast(ss_cl, lmax=output_lmax, new=True,nside=output_nside) #maps generated from IQU cls
-    ss[0] *= (my_modulate_amp)
-    ss[1:] *= (my_modulate_amp_pol)  
+    ss[0] *= (new_mod*1.096)
+    ss[1:] *= (new_mod*1.7094)  
     assert np.isnan(ss).sum() == 0
 
     map_out = ss + ls
