@@ -9,7 +9,7 @@ import time
 output_nside = 2048 
 output_lmax = 2 * output_nside
 datadir="/global/cscratch1/sd/jianyao/Dust/"
-savedir="/global/cscratch1/sd/jianyao/Dust/MFs/"
+savedir="/global/cscratch1/sd/jianyao/Dust/MFs/ls_110_ss_600/"
 
 ss_cl = np.load('/global/cscratch1/sd/jianyao/Dust/small_scales_cl.npy')
 ss_cl_pt = hp.read_cl('/global/cscratch1/sd/jianyao/Dust/small_scales_logpoltens_cl_lmax4096.fits')
@@ -21,15 +21,17 @@ lmax = 2048;nside = 2048;
 comp = "IQU"
 spectra_components = ["TT", "EE", "BB"]
 ell_fit_low = {"TT":100, "EE":30, "BB":30}
-ell_fit_high = {"TT":400, "EE":110, "BB":110}
+ell_fit_high_ls = {"TT":400, "EE":110, "BB":110}
+ell_fit_high_ss = {"TT":400, "EE":600, "BB":600}  # TT always 400
+
 
 ###------ large scale of IQU -------######
 dust_IQU = hp.read_map('/global/cscratch1/sd/jianyao/Dust/Dust_IQU_uK_RJ.fits', field = None) ### original maps in IQU
-ls = get_large_scales(dust_IQU, lmax, spectra_components, ell_fit_high, output_nside)
+ls = get_large_scales(dust_IQU, lmax, spectra_components, ell_fit_high_ls, output_nside)
 
 ###------ large scale of iqu -------######
 log_pol_tens_varres = hp.read_map('/global/cscratch1/sd/jianyao/Dust/dust_gnilc_logpoltens_varres_nomono.fits', field = None) ### original maps in iqu
-log_ls = get_large_scales(log_pol_tens_varres, lmax, spectra_components, ell_fit_high, output_nside)
+log_ls = get_large_scales(log_pol_tens_varres, lmax, spectra_components, ell_fit_high_ls, output_nside)
 
 # my_modulate_amp = hp.read_map(datadir + f"My_modulate_amp_nside{nside}.fits")
 # my_modulate_amp_pol = hp.read_map(datadir + f"My_modulate_amp_pol_nside{nside}.fits")
@@ -60,7 +62,7 @@ for i in range(50):
     log_map_out = log_ls + log_ss_pt
     
     map_out_from_iqu = log_pol_tens_to_map(log_map_out)
-    ss_pt = get_small_scales(map_out_from_iqu, lmax, spectra_components, ell_fit_high, output_nside)
+    ss_pt = get_small_scales(map_out_from_iqu, lmax, spectra_components, ell_fit_high_ss, output_nside)
 
     ss = hp.synfast(ss_cl, lmax=output_lmax, new=True,nside=output_nside) #maps generated from IQU cls
     ss[0] *= (new_mod*1.096)
@@ -68,7 +70,7 @@ for i in range(50):
     assert np.isnan(ss).sum() == 0
 
     map_out = ss + ls
-    ss = get_small_scales(map_out, lmax, spectra_components, ell_fit_high, output_nside)
+    ss = get_small_scales(map_out, lmax, spectra_components, ell_fit_high_ss, output_nside)
     
     if i == 0:
         hp.write_map(savedir + f"dust_IQU_from_iqu_with_small_scales.fits",map_out_from_iqu,dtype=np.float32,overwrite=True)
@@ -95,9 +97,9 @@ for i in range(50):
     end = time.time()
     print("You are at %s , time cost is %s mins!"%(i, (end - start)/60))
 
-np.save('/global/cscratch1/sd/jianyao/Dust/MFs/F_ss_pt.npy', F_ss_pt);
-np.save('/global/cscratch1/sd/jianyao/Dust/MFs/U_ss_pt.npy', U_ss_pt);
-np.save('/global/cscratch1/sd/jianyao/Dust/MFs/Chi_ss_pt.npy', Chi_ss_pt);
-np.save('/global/cscratch1/sd/jianyao/Dust/MFs/F_ss.npy', F_ss);
-np.save('/global/cscratch1/sd/jianyao/Dust/MFs/U_ss.npy', U_ss);
-np.save('/global/cscratch1/sd/jianyao/Dust/MFs/Chi_ss.npy', Chi_ss);
+# np.save('/global/cscratch1/sd/jianyao/Dust/MFs/F_ss_pt.npy', F_ss_pt);
+# np.save('/global/cscratch1/sd/jianyao/Dust/MFs/U_ss_pt.npy', U_ss_pt);
+# np.save('/global/cscratch1/sd/jianyao/Dust/MFs/Chi_ss_pt.npy', Chi_ss_pt);
+# np.save('/global/cscratch1/sd/jianyao/Dust/MFs/F_ss.npy', F_ss);
+# np.save('/global/cscratch1/sd/jianyao/Dust/MFs/U_ss.npy', U_ss);
+# np.save('/global/cscratch1/sd/jianyao/Dust/MFs/Chi_ss.npy', Chi_ss);
